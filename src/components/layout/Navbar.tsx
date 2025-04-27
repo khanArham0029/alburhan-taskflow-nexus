@@ -1,34 +1,41 @@
 
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Bell, Search, User } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useAuth } from '@/lib/auth';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/components/ui/use-toast';
 
 const Navbar = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      navigate('/auth');
+    }
+  };
+
   return (
-    <nav className="w-full border-b bg-white">
-      <div className="container mx-auto flex h-16 items-center px-4 sm:px-6">
-        <div className="flex items-center mr-4">
-          <Link to="/" className="flex items-center gap-2">
-            <span className="text-xl font-bold text-alburhan-purple">TaskFlow Nexus</span>
-          </Link>
-        </div>
-        <div className="ml-auto flex items-center space-x-4">
-          <div className="relative w-full max-w-sm hidden md:flex">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search tasks, projects..."
-              className="w-full rounded-md pl-8"
-            />
-          </div>
-          <Button variant="ghost" size="icon" className="text-muted-foreground">
-            <Bell className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="text-muted-foreground">
-            <User className="h-5 w-5" />
-          </Button>
+    <nav className="border-b">
+      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+        <h1 className="text-xl font-bold">AlBurhan TaskFlow</h1>
+        <div className="flex items-center gap-4">
+          {user ? (
+            <>
+              <span className="text-sm text-muted-foreground">{user.email}</span>
+              <Button variant="outline" onClick={handleSignOut}>Sign Out</Button>
+            </>
+          ) : (
+            <Button onClick={() => navigate('/auth')}>Sign In</Button>
+          )}
         </div>
       </div>
     </nav>
